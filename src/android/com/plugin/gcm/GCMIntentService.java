@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.content.res.Resources;
+import android.graphics.BitmapFactory;
 
 import com.google.android.gcm.GCMBaseIntentService;
 
@@ -97,16 +99,27 @@ public class GCMIntentService extends GCMBaseIntentService {
 				defaults = Integer.parseInt(extras.getString("defaults"));
 			} catch (NumberFormatException e) {}
 		}
-		
+
+		Resources r = context.getResources();
+		int smallIconResourceId = r.getIdentifier("notification", "drawable", context.getPackageName());
+
 		NotificationCompat.Builder mBuilder =
 			new NotificationCompat.Builder(context)
 				.setDefaults(defaults)
-				.setSmallIcon(context.getApplicationInfo().icon)
+				.setSmallIcon(smallIconResourceId)
 				.setWhen(System.currentTimeMillis())
 				.setContentTitle(extras.getString("title"))
 				.setTicker(extras.getString("title"))
 				.setContentIntent(contentIntent)
 				.setAutoCancel(true);
+
+		try {
+			int largeIconResourceId = r.getIdentifier("icon", "drawable", context.getPackageName());
+			mBuilder.setLargeIcon(BitmapFactory.decodeResource(r, largeIconResourceId));
+		}
+		catch(Throwable t) {
+			Log.w(TAG, "Couldn't set large icon, using system defaults");
+		}
 
 		String message = extras.getString("message");
 		if (message != null) {
@@ -149,5 +162,4 @@ public class GCMIntentService extends GCMBaseIntentService {
 	public void onError(Context context, String errorId) {
 		Log.e(TAG, "onError - errorId: " + errorId);
 	}
-
 }
